@@ -1,9 +1,4 @@
 from fp.collections import lookup
-from fp.monads.maybe import Maybe, Just, Nothing
-from fp.monads.iomonad import IO
-from fp import trampoline
-from itertools import ifilter
-from abc import ABCMeta, abstractmethod
 from urlparse import urlparse
 from urllib import unquote
 
@@ -18,7 +13,7 @@ def queryM(return_type, data, url):
 
     Query the data for the pointer in the URL or fails.
 
-    >>> from fp.monads.maybe import Maybe, Just, Nothing
+    >>> from fp.monads.maybe import Maybe, Just
     >>> from fp.monads.either import Either
 
     Example from the spec:

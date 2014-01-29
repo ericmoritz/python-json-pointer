@@ -41,3 +41,5 @@ Usage:
 
 """
 from core.json_pointer import queryM, url_to_pointerM
+
+__all__ = ['queryM', 'url_to_pointerM']
