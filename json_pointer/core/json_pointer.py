@@ -17,6 +17,8 @@ def queryM(return_type, data, url):
     queryM(fp.monads.Monad, json_data(), unicode())
 
     >>> from fp.monads.maybe import Maybe, Just, Nothing
+    >>> from fp.monads.either import Either
+
     >>> import json
     >>> data = json.loads('''{
     ...    "foo": {
@@ -47,28 +49,60 @@ def queryM(return_type, data, url):
     >>> queryM(Maybe, data, 'http://example.com/example.json#/foo/bar/0') == Just(data['foo']['bar'][0])
     True
 
-    >>> queryM(Maybe, data, 'http://example.com/example.json#/zingo')
-    Nothing
+    ## Failure cases:
+
+    Missing key:
+    >>> queryM(Either, data, 'http://example.com/example.json#/zingo')
+    Left(KeyError('zingo',))
+
+    Invalid URL
+    >>> queryM(Either, data, 'http://[xyzzy/example.json#/zingo')
+    Left(ValueError('Invalid IPv6 URL',))
+
     """
-    pointer = url_to_pointer(url)
-    keys = __parse_pointer(pointer)
-    return __fold_keysM(return_type, data, keys)
+    return url_to_pointerM(return_type, url).bind(
+        lambda pointer: return_type.ret(__parse_pointer(pointer))
+    ).bind(
+        lambda keys: __fold_keysM(return_type, data, keys)
+    )
 
 
 def url_to_pointer(url):
     """
+    >>> url_to_pointer('http://[fooo/')
+    ''
+
     >>> url_to_pointer('')
     ''
+
     
     >>> url_to_pointer('http://example.com/foo.json#/')
     '/'
 
     """
-    return Maybe.catch(
+    return url_to_pointerM(Maybe, url).default('')
+
+
+def url_to_pointerM(return_type, url):
+    """
+    >>> from fp.monads.maybe import Maybe
+
+    Invalid URL
+    >>> url_to_pointerM(Maybe, 'http://[fooo/')
+    Nothing
+
+    Blank URL
+    >>> url_to_pointerM(Maybe, '')
+    Just('')
+
+    >>> url_to_pointerM(Maybe, 'http://example.com/foo.json#/')
+    Just('/')
+    """
+    return return_type.catch(
         lambda: urlparse(url)
     ).bind(
-        lambda bits: Just(bits.fragment)
-    ).default('')
+        lambda bits: return_type.ret(bits.fragment)
+    )
 
 
 ###-------------------------------------------------------------------
