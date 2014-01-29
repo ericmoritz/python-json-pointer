@@ -16,8 +16,12 @@ def queryM(return_type, data, url):
     json_data() :: unicode() | number() | dict() | list()
     queryM(fp.monads.Monad, json_data(), unicode())
 
+    Query the data for the pointer in the URL or fails.
+
     >>> from fp.monads.maybe import Maybe, Just, Nothing
     >>> from fp.monads.either import Either
+
+    Example from the spec:
 
     >>> import json
     >>> data = json.loads('''{
@@ -73,6 +77,9 @@ def queryM(return_type, data, url):
 
 def url_to_pointerM(return_type, url):
     """
+    Attempts to extract the pointer from the URL as
+    defined by the spec or fails if the URL is invalid.
+
     >>> from fp.monads.maybe import Maybe
 
     Invalid URL
@@ -97,6 +104,11 @@ def url_to_pointerM(return_type, url):
 ### Internal
 ###-------------------------------------------------------------------
 def __fold_keysM(return_type, obj, keys):
+    """
+    Folds the keys over the object, fetching nested 
+    objects until reaching the obj in the pointer 
+    or failing.
+    """
     accM = return_type.ret(obj)
     for key in keys:
         accM = accM.bind(
@@ -109,6 +121,9 @@ def __fold_keysM(return_type, obj, keys):
 
 def __map_keyM(return_type, obj, key):
     """
+    This maps the key to the approriate type or fails if the key
+    can not be casted.
+
     >>> from fp.monads.either import Either
     >>> __map_keyM(Either, [], '0')
     Right(0)
@@ -137,6 +152,9 @@ def __map_keyM(return_type, obj, key):
 
 def __parse_pointer(pointer):
     """
+    Splits the pointer into its key bits, filtering out blank keys with are
+    self referential.
+
     >>> __parse_pointer('')
     []
 
