@@ -59,6 +59,10 @@ def queryM(return_type, data, url):
     >>> queryM(Either, data, 'http://[xyzzy/example.json#/zingo')
     Left(ValueError('Invalid IPv6 URL',))
 
+    Invalid Key for data type (string key on a list)
+    >>> queryM(Either, data, 'http://example.com/example.json#/foo/bar/baz')
+    Left(ValueError("invalid literal for int() with base 10: 'baz'",))
+
     """
     return url_to_pointerM(return_type, url).bind(
         lambda pointer: return_type.ret(__parse_pointer(pointer))
@@ -96,36 +100,39 @@ def __fold_keysM(return_type, obj, keys):
     accM = return_type.ret(obj)
     for key in keys:
         accM = accM.bind(
-            lambda obj: __map_key(obj, key).bind(
+            lambda obj: __map_keyM(return_type, obj, key).bind(
                 lambda key: lookup(return_type, obj, key)
             )
         )
     return accM
 
 
-def __map_key(obj, key):
+def __map_keyM(return_type, obj, key):
     """
-    >>> __map_key([], '0')
-    Just(0)
+    >>> from fp.monads.either import Either
+    >>> __map_keyM(Either, [], '0')
+    Right(0)
 
-    >>> __map_key({}, '0')
-    Just('0')
+
+    >>> __map_keyM(Either, {}, '0')
+    Right('0')
     
-    >>> __map_key([], 'foo')
-    Nothing
+    >>> __map_keyM(Either, [], 'foo')
+    Left(ValueError("invalid literal for int() with base 10: 'foo'",))
 
-    >>> __map_key('', '0') # can't index into strings with JSON pointer
-    Nothing
+    >>> __map_keyM(Either, '', '0') # can't index into strings with JSON pointer
+    Left(TypeError("'str' object is not subscriptable",))
 
-    >>> __map_key(1024, '0') # can't index into numbers with JSON pointer
-    Nothing
+    >>> __map_keyM(Either, 1024, '0') # can't index into numbers with JSON pointer
+    Left(TypeError("'int' object is not subscriptable",))
+
     """
     if isinstance(obj, list):
-        return Maybe.catch(lambda: int(key))
+        return return_type.catch(lambda: int(key))
     elif isinstance(obj, dict):
-        return Just(key)
+        return return_type.ret(key)
     else:
-        return Nothing
+        return return_type.fail(TypeError("'{}' object is not subscriptable".format(type(obj).__name__)))
         
 
 def __parse_pointer(pointer):

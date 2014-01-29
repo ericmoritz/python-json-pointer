@@ -40,4 +40,4 @@ Usage:
     Nothing
 
 """
-from core.json_pointer import queryM, url_to_pointer
+from core.json_pointer import queryM, url_to_pointerM
