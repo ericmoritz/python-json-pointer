@@ -75,18 +75,20 @@ def url_to_pointerM(return_type, url):
     Attempts to extract the pointer from the URL as
     defined by the spec or fails if the URL is invalid.
 
-    >>> from fp.monads.maybe import Maybe
+    >>> from fp.monads.either import Either
+
+    >>> url_to_pointerM(Either, 'http://example.com/foo.json#/')
+    Right('/')
+
+    >>> url_to_pointerM(Either, '')
+    Right('')
+
+
+    ## Error cases
 
     Invalid URL
-    >>> url_to_pointerM(Maybe, 'http://[fooo/')
-    Nothing
-
-    Blank URL
-    >>> url_to_pointerM(Maybe, '')
-    Just('')
-
-    >>> url_to_pointerM(Maybe, 'http://example.com/foo.json#/')
-    Just('/')
+    >>> url_to_pointerM(Either, 'http://[fooo/')
+    Left(ValueError('Invalid IPv6 URL',))
     """
     return return_type.catch(
         lambda: urlparse(url)
