@@ -67,22 +67,6 @@ def queryM(return_type, data, url):
     )
 
 
-def url_to_pointer(url):
-    """
-    >>> url_to_pointer('http://[fooo/')
-    ''
-
-    >>> url_to_pointer('')
-    ''
-
-    
-    >>> url_to_pointer('http://example.com/foo.json#/')
-    '/'
-
-    """
-    return url_to_pointerM(Maybe, url).default('')
-
-
 def url_to_pointerM(return_type, url):
     """
     >>> from fp.monads.maybe import Maybe
